@@ -1,0 +1,672 @@
+NAME
+    idautils - idautils.py - High level utility functions for IDA
+
+FILE
+    c:\program files\ida 7.0\python\idautils.py
+
+CLASSES
+    __builtin__.object
+        Strings
+        peutils_t
+    
+    class Strings(__builtin__.object)
+     |  Allows iterating over the string list. The set of strings will not be
+     |  modified, unless asked explicitly at setup()-time. This string list also
+     |  is used by the "String window" so it may be changed when this window is
+     |  updated.
+     |  
+     |  Example:
+     |      s = Strings()
+     |  
+     |      for i in s:
+     |          print "%x: len=%d type=%d -> '%s'" % (i.ea, i.length, i.strtype, str(i))
+     |  
+     |  Methods defined here:
+     |  
+     |  __getitem__(self, index)
+     |      Returns a string item or None
+     |  
+     |  __init__(self, default_setup=False)
+     |      Initializes the Strings enumeration helper class
+     |      
+     |      @param default_setup: Set to True to use default setup (C strings, min len 5, ...)
+     |  
+     |  __iter__(self)
+     |  
+     |  clear_cache(self)
+     |      Clears the strings list cache
+     |  
+     |  refresh(self)
+     |      Refreshes the strings list
+     |  
+     |  setup(self, strtypes=[0], minlen=5, only_7bit=True, ignore_instructions=False, display_only_existing_strings=False)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors defined here:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data and other attributes defined here:
+     |  
+     |  StringItem = <class 'idautils.StringItem'>
+     |      Class representing each string item.
+    
+    class peutils_t(__builtin__.object)
+     |  PE utility class. Retrieves PE information from the database.
+     |  
+     |  Constants from pe.h
+     |  
+     |  Methods defined here:
+     |  
+     |  __init__(self)
+     |  
+     |  __str__(self)
+     |  
+     |  header(self)
+     |      Returns the complete PE header as an instance of peheader_t (defined in the SDK).
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors defined here:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+     |  
+     |  imagebase
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data and other attributes defined here:
+     |  
+     |  PE_ALT_DBG_FPOS = 18446744073709551615L
+     |  
+     |  PE_ALT_IMAGEBASE = 18446744073709551614L
+     |  
+     |  PE_ALT_NEFLAGS = 18446744073709551612L
+     |  
+     |  PE_ALT_PEHDR_OFF = 18446744073709551613L
+     |  
+     |  PE_ALT_PSXDLL = 18446744073709551610L
+     |  
+     |  PE_ALT_TDS_LOADED = 18446744073709551611L
+     |  
+     |  PE_NODE = '$ PE header'
+
+FUNCTIONS
+    Assemble(ea, line)
+        Assembles one or more lines (does not display an message dialogs)
+        If line is a list then this function will attempt to assemble all the lines
+        This function will turn on batch mode temporarily so that no messages are displayed on the screen
+        
+        @param ea:       start address
+        @return: (False, "Error message") or (True, asm_buf) or (True, [asm_buf1, asm_buf2, asm_buf3])
+    
+    Chunks(start)
+        Get a list of function chunks
+        
+        @param start: address of the function
+        
+        @return: list of funcion chunks (tuples of the form (start_ea, end_ea))
+                 belonging to the function
+    
+    CodeRefsFrom(ea, flow)
+        Get a list of code references from 'ea'
+        
+        @param ea:   Target address
+        @param flow: Follow normal code flow or not
+        @type  flow: Boolean (0/1, False/True)
+        
+        @return: list of references (may be empty list)
+        
+        Example::
+        
+            for ref in CodeRefsFrom(get_screen_ea(), 1):
+                print ref
+    
+    CodeRefsTo(ea, flow)
+        Get a list of code references to 'ea'
+        
+        @param ea:   Target address
+        @param flow: Follow normal code flow or not
+        @type  flow: Boolean (0/1, False/True)
+        
+        @return: list of references (may be empty list)
+        
+        Example::
+        
+            for ref in CodeRefsTo(get_screen_ea(), 1):
+                print ref
+    
+    DataRefsFrom(ea)
+        Get a list of data references from 'ea'
+        
+        @param ea:   Target address
+        
+        @return: list of references (may be empty list)
+        
+        Example::
+        
+            for ref in DataRefsFrom(get_screen_ea()):
+                print ref
+    
+    DataRefsTo(ea)
+        Get a list of data references to 'ea'
+        
+        @param ea:   Target address
+        
+        @return: list of references (may be empty list)
+        
+        Example::
+        
+            for ref in DataRefsTo(get_screen_ea()):
+                print ref
+    
+    DecodeInstruction(ea)
+        Decodes an instruction and returns an insn_t like class
+        
+        @param ea: address to decode
+        @return: None or a new insn_t instance
+    
+    DecodePrecedingInstruction(ea)
+        Decode preceding instruction in the execution flow.
+        
+        @param ea: address to decode
+        @return: (None or the decode instruction, farref)
+                 farref will contain 'true' if followed an xref, false otherwise
+    
+    DecodePreviousInstruction(ea)
+        Decodes the previous instruction and returns an insn_t like class
+        
+        @param ea: address to decode
+        @return: None or a new insn_t instance
+    
+    Entries()
+        Returns a list of entry points
+        
+        @return: List of tuples (index, ordinal, ea, name)
+    
+    FuncItems(start)
+        Get a list of function items
+        
+        @param start: address of the function
+        
+        @return: ea of each item in the function
+    
+    Functions(start=None, end=None)
+        Get a list of functions
+        
+        @param start: start address (default: inf.min_ea)
+        @param end:   end address (default: inf.max_ea)
+        
+        @return: list of heads between start and end
+        
+        @note: The last function that starts before 'end' is included even
+        if it extends beyond 'end'. Any function that has its chunks scattered
+        in multiple segments will be reported multiple times, once in each segment
+        as they are listed.
+    
+    GetDataList(ea, count, itemsize=1)
+        Get data list - INTERNAL USE ONLY
+    
+    GetIdbDir()
+        Get IDB directory
+        
+        This function returns directory path of the current IDB database
+    
+    GetInputFileMD5()
+        Return the MD5 hash of the input binary file
+        
+        @return: MD5 string or None on error
+    
+    GetInstructionList()
+        Returns the instruction list of the current processor module
+    
+    GetRegisterList()
+        Returns the register list
+    
+    Heads(start=None, end=None)
+        Get a list of heads (instructions or data)
+        
+        @param start: start address (default: inf.min_ea)
+        @param end:   end address (default: inf.max_ea)
+        
+        @return: list of heads between start and end
+    
+    MapDataList(ea, length, func, wordsize=1)
+        Map through a list of data words in the database
+        
+        @param ea:       start address
+        @param length:   number of words to map
+        @param func:     mapping function
+        @param wordsize: size of words to map [default: 1 byte]
+        
+        @return: None
+    
+    Modules()
+        Returns a list of module objects with name,size,base and the rebase_to attributes
+    
+    Names()
+        Returns a list of names
+        
+        @return: List of tuples (ea, name)
+    
+    ProcessUiActions(actions, flags=0)
+        @param actions: A string containing a list of actions separated by semicolon, a list or a tuple
+        @param flags: flags to be passed to process_ui_action()
+        @return: Boolean. Returns False if the action list was empty or execute_ui_requests() failed.
+    
+    PutDataList(ea, datalist, itemsize=1)
+        Put data list - INTERNAL USE ONLY
+    
+    Segments()
+        Get list of segments (sections) in the binary image
+        
+        @return: List of segment start addresses.
+    
+    StructMembers(sid)
+        Get a list of structure members information (or stack vars if given a frame).
+        
+        @param sid: ID of the structure.
+        
+        @return: List of tuples (offset, name, size)
+        
+        @note: If 'sid' does not refer to a valid structure,
+               an exception will be raised.
+        @note: This will not return 'holes' in structures/stack frames;
+               it only returns defined structure members.
+    
+    Structs()
+        Get a list of structures
+        
+        @return: List of tuples (idx, sid, name)
+    
+    Threads()
+        Returns all thread IDs
+    
+    XrefTypeName(typecode)
+        Convert cross-reference type codes to readable names
+        
+        @param typecode: cross-reference type code
+    
+    XrefsFrom(ea, flags=0)
+        Return all references from address 'ea'
+        
+        @param ea: Reference address
+        @param flags: any of ida_xref.XREF_* flags
+        
+        Example::
+               for xref in XrefsFrom(here(), 0):
+                   print xref.type, XrefTypeName(xref.type),                          'from', hex(xref.frm), 'to', hex(xref.to)
+    
+    XrefsTo(ea, flags=0)
+        Return all references to address 'ea'
+        
+        @param ea: Reference address
+        @param flags: any of ida_xref.XREF_* flags
+        
+        Example::
+               for xref in XrefsTo(here(), 0):
+                   print xref.type, XrefTypeName(xref.type),                          'from', hex(xref.frm), 'to', hex(xref.to)
+    
+    refs(ea, funcfirst, funcnext)
+        Generic reference collector - INTERNAL USE ONLY.
+
+DATA
+    cpu = <idautils._cpu object>
+    procregs = <idautils._procregs object>
+
+
+
+  bytes   pages size description
+--------- ----- ---- --------------------------------------------
+   262144    32 8192 allocating memory for b-tree...
+    65536     8 8192 allocating memory for virtual array...
+   262144    32 8192 allocating memory for name pointers...
+-----------------------------------------------------------------
+   589824            total memory allocated
+
+Loading processor module C:\Program Files\IDA 7.0\procs\pc64.dll for metapc...OK
+Loading type libraries...
+Autoanalysis subsystem has been initialized.
+Database for file 'headache' has been loaded.
+Hex-Rays Decompiler plugin has been loaded (v7.0.0.170914)
+  License: 55-BAE5-8A04-93 Jiang Ying, Personal license (1 user)
+  The hotkeys are F5: decompile, Ctrl-F5: decompile all.
+  Please check the Edit/Plugins menu for more informaton.
+IDAPython Hex-Rays bindings initialized.
+---------------------------------------------------------------------------------------------
+Python 2.7.13 (v2.7.13:a06454b1afa1, Dec 17 2016, 20:53:40) [MSC v.1500 64 bit (AMD64)] 
+IDAPython 64-bit v1.7.0 final (serial 0) (c) The IDAPython Team <idapython@googlegroups.com>
+---------------------------------------------------------------------------------------------
+Python>import idautils
+Python>idautils.segments()
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+AttributeError: 'module' object has no attribute 'segments'
+Python>help(idautils)
+Help on module idautils:
+
+NAME
+    idautils - idautils.py - High level utility functions for IDA
+
+FILE
+    c:\program files\ida 7.0\python\idautils.py
+
+CLASSES
+    __builtin__.object
+        Strings
+        peutils_t
+    
+    class Strings(__builtin__.object)
+     |  Allows iterating over the string list. The set of strings will not be
+     |  modified, unless asked explicitly at setup()-time. This string list also
+     |  is used by the "String window" so it may be changed when this window is
+     |  updated.
+     |  
+     |  Example:
+     |      s = Strings()
+     |  
+     |      for i in s:
+     |          print "%x: len=%d type=%d -> '%s'" % (i.ea, i.length, i.strtype, str(i))
+     |  
+     |  Methods defined here:
+     |  
+     |  __getitem__(self, index)
+     |      Returns a string item or None
+     |  
+     |  __init__(self, default_setup=False)
+     |      Initializes the Strings enumeration helper class
+     |      
+     |      @param default_setup: Set to True to use default setup (C strings, min len 5, ...)
+     |  
+     |  __iter__(self)
+     |  
+     |  clear_cache(self)
+     |      Clears the strings list cache
+     |  
+     |  refresh(self)
+     |      Refreshes the strings list
+     |  
+     |  setup(self, strtypes=[0], minlen=5, only_7bit=True, ignore_instructions=False, display_only_existing_strings=False)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors defined here:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data and other attributes defined here:
+     |  
+     |  StringItem = <class 'idautils.StringItem'>
+     |      Class representing each string item.
+    
+    class peutils_t(__builtin__.object)
+     |  PE utility class. Retrieves PE information from the database.
+     |  
+     |  Constants from pe.h
+     |  
+     |  Methods defined here:
+     |  
+     |  __init__(self)
+     |  
+     |  __str__(self)
+     |  
+     |  header(self)
+     |      Returns the complete PE header as an instance of peheader_t (defined in the SDK).
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors defined here:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+     |  
+     |  imagebase
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data and other attributes defined here:
+     |  
+     |  PE_ALT_DBG_FPOS = 18446744073709551615L
+     |  
+     |  PE_ALT_IMAGEBASE = 18446744073709551614L
+     |  
+     |  PE_ALT_NEFLAGS = 18446744073709551612L
+     |  
+     |  PE_ALT_PEHDR_OFF = 18446744073709551613L
+     |  
+     |  PE_ALT_PSXDLL = 18446744073709551610L
+     |  
+     |  PE_ALT_TDS_LOADED = 18446744073709551611L
+     |  
+     |  PE_NODE = '$ PE header'
+
+FUNCTIONS
+    Assemble(ea, line)
+        Assembles one or more lines (does not display an message dialogs)
+        If line is a list then this function will attempt to assemble all the lines
+        This function will turn on batch mode temporarily so that no messages are displayed on the screen
+        
+        @param ea:       start address
+        @return: (False, "Error message") or (True, asm_buf) or (True, [asm_buf1, asm_buf2, asm_buf3])
+    
+    Chunks(start)
+        Get a list of function chunks
+        
+        @param start: address of the function
+        
+        @return: list of funcion chunks (tuples of the form (start_ea, end_ea))
+                 belonging to the function
+    
+    CodeRefsFrom(ea, flow)
+        Get a list of code references from 'ea'
+        
+        @param ea:   Target address
+        @param flow: Follow normal code flow or not
+        @type  flow: Boolean (0/1, False/True)
+        
+        @return: list of references (may be empty list)
+        
+        Example::
+        
+            for ref in CodeRefsFrom(get_screen_ea(), 1):
+                print ref
+    
+    CodeRefsTo(ea, flow)
+        Get a list of code references to 'ea'
+        
+        @param ea:   Target address
+        @param flow: Follow normal code flow or not
+        @type  flow: Boolean (0/1, False/True)
+        
+        @return: list of references (may be empty list)
+        
+        Example::
+        
+            for ref in CodeRefsTo(get_screen_ea(), 1):
+                print ref
+    
+    DataRefsFrom(ea)
+        Get a list of data references from 'ea'
+        
+        @param ea:   Target address
+        
+        @return: list of references (may be empty list)
+        
+        Example::
+        
+            for ref in DataRefsFrom(get_screen_ea()):
+                print ref
+    
+    DataRefsTo(ea)
+        Get a list of data references to 'ea'
+        
+        @param ea:   Target address
+        
+        @return: list of references (may be empty list)
+        
+        Example::
+        
+            for ref in DataRefsTo(get_screen_ea()):
+                print ref
+    
+    DecodeInstruction(ea)
+        Decodes an instruction and returns an insn_t like class
+        
+        @param ea: address to decode
+        @return: None or a new insn_t instance
+    
+    DecodePrecedingInstruction(ea)
+        Decode preceding instruction in the execution flow.
+        
+        @param ea: address to decode
+        @return: (None or the decode instruction, farref)
+                 farref will contain 'true' if followed an xref, false otherwise
+    
+    DecodePreviousInstruction(ea)
+        Decodes the previous instruction and returns an insn_t like class
+        
+        @param ea: address to decode
+        @return: None or a new insn_t instance
+    
+    Entries()
+        Returns a list of entry points
+        
+        @return: List of tuples (index, ordinal, ea, name)
+    
+    FuncItems(start)
+        Get a list of function items
+        
+        @param start: address of the function
+        
+        @return: ea of each item in the function
+    
+    Functions(start=None, end=None)
+        Get a list of functions
+        
+        @param start: start address (default: inf.min_ea)
+        @param end:   end address (default: inf.max_ea)
+        
+        @return: list of heads between start and end
+        
+        @note: The last function that starts before 'end' is included even
+        if it extends beyond 'end'. Any function that has its chunks scattered
+        in multiple segments will be reported multiple times, once in each segment
+        as they are listed.
+    
+    GetDataList(ea, count, itemsize=1)
+        Get data list - INTERNAL USE ONLY
+    
+    GetIdbDir()
+        Get IDB directory
+        
+        This function returns directory path of the current IDB database
+    
+    GetInputFileMD5()
+        Return the MD5 hash of the input binary file
+        
+        @return: MD5 string or None on error
+    
+    GetInstructionList()
+        Returns the instruction list of the current processor module
+    
+    GetRegisterList()
+        Returns the register list
+    
+    Heads(start=None, end=None)
+        Get a list of heads (instructions or data)
+        
+        @param start: start address (default: inf.min_ea)
+        @param end:   end address (default: inf.max_ea)
+        
+        @return: list of heads between start and end
+    
+    MapDataList(ea, length, func, wordsize=1)
+        Map through a list of data words in the database
+        
+        @param ea:       start address
+        @param length:   number of words to map
+        @param func:     mapping function
+        @param wordsize: size of words to map [default: 1 byte]
+        
+        @return: None
+    
+    Modules()
+        Returns a list of module objects with name,size,base and the rebase_to attributes
+    
+    Names()
+        Returns a list of names
+        
+        @return: List of tuples (ea, name)
+    
+    ProcessUiActions(actions, flags=0)
+        @param actions: A string containing a list of actions separated by semicolon, a list or a tuple
+        @param flags: flags to be passed to process_ui_action()
+        @return: Boolean. Returns False if the action list was empty or execute_ui_requests() failed.
+    
+    PutDataList(ea, datalist, itemsize=1)
+        Put data list - INTERNAL USE ONLY
+    
+    Segments()
+        Get list of segments (sections) in the binary image
+        
+        @return: List of segment start addresses.
+    
+    StructMembers(sid)
+        Get a list of structure members information (or stack vars if given a frame).
+        
+        @param sid: ID of the structure.
+        
+        @return: List of tuples (offset, name, size)
+        
+        @note: If 'sid' does not refer to a valid structure,
+               an exception will be raised.
+        @note: This will not return 'holes' in structures/stack frames;
+               it only returns defined structure members.
+    
+    Structs()
+        Get a list of structures
+        
+        @return: List of tuples (idx, sid, name)
+    
+    Threads()
+        Returns all thread IDs
+    
+    XrefTypeName(typecode)
+        Convert cross-reference type codes to readable names
+        
+        @param typecode: cross-reference type code
+    
+    XrefsFrom(ea, flags=0)
+        Return all references from address 'ea'
+        
+        @param ea: Reference address
+        @param flags: any of ida_xref.XREF_* flags
+        
+        Example::
+               for xref in XrefsFrom(here(), 0):
+                   print xref.type, XrefTypeName(xref.type),                          'from', hex(xref.frm), 'to', hex(xref.to)
+    
+    XrefsTo(ea, flags=0)
+        Return all references to address 'ea'
+        
+        @param ea: Reference address
+        @param flags: any of ida_xref.XREF_* flags
+        
+        Example::
+               for xref in XrefsTo(here(), 0):
+                   print xref.type, XrefTypeName(xref.type),                          'from', hex(xref.frm), 'to', hex(xref.to)
+    
+    refs(ea, funcfirst, funcnext)
+        Generic reference collector - INTERNAL USE ONLY.

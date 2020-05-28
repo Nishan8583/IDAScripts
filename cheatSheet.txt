@@ -1,0 +1,24 @@
+#IDAPython Cheat Sheet by moveax41h
+Heads(start_addr,end_addr) - gets a list of instructions between these two addresses
+MinEA() - Lowest address in file - use hex() to view
+MaxEA() - Highest address in file - use hex() to view
+idc.prev_head(ea,MinEA()) - prev instruction from ea
+idc.next_head(ea,MaxEA()) - next instruction from ea
+idc.SegName(ea) - Get the section of the current addr such as .text, .rdata, etc..
+idc.GetMnem(ea) - Gets the OPERATOR of the current instruction such as push, pop, mov, etc..
+idc.GetOpnd(ea,0..) - Gets the OPERANDS of the current instruction specified by 2nd arg begin w/ 0 e.g. eax, dword ptr
+idc.get_root_filename() - gets the current file being analyzed's name
+idc.get_screen_ea()/ScreenEA() - get address of cursor (current address)
+idc.get_segm_start(ea)/SegStart(ea) - Get the segment start addr of an address
+idc.get_segm_end(ea)/SegEnd(ea) - Get the segment end addr of an address
+idc.get_reg_value('name') - gets the value of the specified reg in debugger mode
+idc.set_color(ea,TypeOfItem,ColorIn0xHex)/SetColor - sets an item color, see CIC_* constants for mid arg CIC_ITEM
+FindBinary(base, SEARCH_NEXT|SEARCH_DOWN|SEARCH_CASE, '"%s"' % string) - searches for a string
+idaapi.get_imagebase() - gets imagebase
+idaapi.autoWait() - wait for analysis to finish before running plugin
+idc.GetDisasm(ea) - gets the line of disassembly at the supplied address
+idc.MakeComm(ea,string) - places the specified text string as a comment at the ea address
+idc.MakeRptCmt(ea, string) - places a repeatable comment at the ea address
+help(func_name_here) - looks up the func signature for func_name_here
+import inspect followed by inspect.getsource(func_name) - gets the source code for func_name
+dir(construct) gives you the props/methods available to construct
