@@ -5,15 +5,22 @@ print("--SCRIPT STARTED--")
 # Get list of segments available
 segAddressList = idautils.Segments()
 
+# Functions that may be used while malware is trying to run covertly
+covertLaunchingFunctionCalls = ["createprocess","openprocess","writeprocess","virtualallocex","createremotethread",
+                             "zwunmapviewofsection","SetWindowsHook","QueueUserAPC"]
+
 # List of antidebug techniques
-antiDebugTechniques = ["IsDebuggerPresent","OutputDebugStringW"]
+antiDebugFunctionCalls = ["IsDebuggerPresent","OutputDebugStringW","CheckRemoteDebuggerPresent","NtQueryInformationProcess",
+                       "ZwQueryInformationProcess","OutputDebugString",]
 
 # List of antiVM techniques
-antiVMTechniques = ["IsProcessorFeaturePresent"]
+antiVMFunctionCalls = ["IsProcessorFeaturePresent"]
 
 # List of antiRE techniques
-antiRETechniques = []
+antiREFunctionCalls = []
 
+# anti VM instructions
+antiVMTechniques = ["sidt","sgdt","sldt","cpuid",]
 # Function Call Count Limit
 functionCallsCountLimit = {"GetProcAddress":10}
 
@@ -37,21 +44,10 @@ def checkIfLimitCrossed():
             print("Higher number of function calls for function {} limit is {} observed count is {}".format(key,functionCallsCountLimit[key],value))
 
 # check if function present
-def checkAntiAnalysis(option,address,disassembly):
-
-    # Checking anti Debugging techniques
-    for functions in antiDebugTechniques:
-        if functions in inst:
-            print("[*] Possible Anti Debug Technique at {} -> {}".format(hex(int(address)),disassembly))
-
-    # Checking anti vm techniques
-    for functions in antiVMTechniques:
-        if functions in inst:
-            print("[*] Possible Anti VM Technique at {} -> {}".format(hex(int(address)),disassembly))
-
-    for functions in antiRETechniques:
-        if functions in inst:
-            print("[*] Possible Anti RE Technique at {} -> {}".format(hex(int(address)),disassembly))
+def checkIfInList(techniqueName, techniqueList, address, disassembly, message):
+    for technique in techniqueList:
+        if technique.lower() in disassembly.lower():
+             print(message)
 
 # loop through all sections
 for address in segAddressList:
@@ -69,16 +65,26 @@ for address in segAddressList:
         while nextInstruction <= endAddr:
 
             # Get the disassembly 
-            inst = idc.GetDisasm(nextInstruction)
+            disassembly = idc.GetDisasm(nextInstruction)
 
             # If call present in the disassembly
-            if "call" in inst:
+            if "call" in disassembly:
 
                 # Calling checkAntiAnalysis Function
-                checkAntiAnalysis("anti-debug",nextInstruction,inst)
+                checkIfInList("covert-launching", covertLaunchingFunctionCalls, nextInstruction, disassembly, 
+                "[*] Possible covert launching Technique at {} -> {}\n".format(hex(int(address)),disassembly))
+
+                checkIfInList("Anti Re", antiREFunctionCalls, nextInstruction, disassembly, 
+                "[*] Possible Anti RE Technique at {} -> {}\n".format(hex(int(address)),disassembly))
+
+                checkIfInList("Anti Debug",antiDebugFunctionCalls , nextInstruction, disassembly, 
+                "[*] Possible Anti Debug Technique at {} -> {}\n".format(hex(int(address)),disassembly))
+
+                checkIfInList("Anti VM", antiVMFunctionCalls, nextInstruction, disassembly, 
+                "[*] Possible Anti VM Technique at {} -> {}\n".format(hex(int(address)),disassembly))
 
                 # Checking funciton limit
-                addFunctionCallLimit(inst)
+                addFunctionCallLimit(disassembly)
 
             # Increasing the address, so that we can check the next instruction    
             nextInstruction = idc.next_head(nextInstruction,endAddr)
