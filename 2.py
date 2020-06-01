@@ -1,31 +1,13 @@
-import idautils,idaapi,idc
+from idautils import *
+from idaapi import *
+from idc import *
+from source import *
 
 print("--SCRIPT STARTED--")
 
 # Get list of segments available
-segAddressList = idautils.Segments()
+segAddressList = Segments()
 
-# Functions that may be used while malware is trying to run covertly
-covertLaunchingFunctionCalls = ["createprocess","openprocess","writeprocess","virtualallocex","createremotethread",
-                             "zwunmapviewofsection","SetWindowsHook","QueueUserAPC"]
-
-# List of antidebug techniques
-antiDebugFunctionCalls = ["IsDebuggerPresent","OutputDebugStringW","CheckRemoteDebuggerPresent","NtQueryInformationProcess",
-                       "ZwQueryInformationProcess","OutputDebugString",]
-
-# List of antiVM techniques
-antiVMFunctionCalls = ["IsProcessorFeaturePresent"]
-
-# List of antiRE techniques
-antiREFunctionCalls = []
-
-# anti VM instructions
-antiVMTechniques = ["sidt","sgdt","sldt","cpuid",]
-# Function Call Count Limit
-functionCallsCountLimit = {"GetProcAddress":10}
-
-# functionCalls and their respective count stored
-numberOfFunctionCalls = {}
 
 # addFunctionCallLimit checks if the call instruction has any function that was in functionCallsCountLimit
 # If so the function is addded numberOfFunctionCalls, and the number of time it appears, the count is updated 
@@ -49,23 +31,71 @@ def checkIfInList(techniqueName, techniqueList, address, disassembly, message):
         if technique.lower() in disassembly.lower():
              print(message)
 
+# jump lists
+jumpLists = ["jmp","jnz","jbe","jge","jz"]
+
+# checking if the jump is to itself
+def checkInvalidJump(disassembly):
+    peekAddr = next_head(nextInstruction,endAddr)
+    disList = disassembly.split("     ")
+    print(disList)
+
+def checkIfResolvedNames():
+    #disList = disassembly.split("     ")
+    
+    for name in function_list:
+        if name in disassembly:
+            return
+    
+    for name in nameList:
+        if name in disassembly:
+            return
+    print("THe function was not in resolved lists",disassembly)                
+
+def checkIfJumpAtSameAddress():
+
+    # Looping through jump lists
+    for jumps in jumpLists:
+
+        # checking if it is a jump instruction
+        if jumps in disassembly:
+
+            # seperating jump code and address
+            disList1 = disassembly.split("     ")
+
+            # getting the next address
+            peekAddr = next_head(nextInstruction,endAddr)
+
+            # Getting the next instruction
+            peekInst = GetDisasm(peekAddr)
+
+            for jumps2 in jumpLists:
+
+                # Checking if the next instruction is also jump
+                if jumps2 in peekInst:
+                    disList2 = peekInst.split("     ")
+                    if disList1[1] == disList2[1]:  # If both consequtive jumps was at same address
+                        print("There is jump at same address")
+
+
+
 # loop through all sections
 for address in segAddressList:
 
     # If .text section was found
-    if idc.get_segm_name(address) == ".text":
+    if get_segm_name(address) == ".text":
         print("GOT THE TEXT SECTION")
 
         # Get the start and end address of the segment
         nextInstruction = address
         
         # Get end address of the segment
-        endAddr = idc.get_segm_end(address)
+        endAddr = get_segm_end(address)
 
         while nextInstruction <= endAddr:
 
             # Get the disassembly 
-            disassembly = idc.GetDisasm(nextInstruction)
+            disassembly = GetDisasm(nextInstruction)
 
             # If call present in the disassembly
             if "call" in disassembly:
@@ -85,11 +115,18 @@ for address in segAddressList:
 
                 # Checking funciton limit
                 addFunctionCallLimit(disassembly)
+                checkIfJumpAtSameAddress()
+                checkIfResolvedNames()
+            if "xor" in disassembly:
+                print(disassembly)
 
+            #if "jmp" in disassembly:
+            #    checkInvalidJump(disassembly)
             # Increasing the address, so that we can check the next instruction    
-            nextInstruction = idc.next_head(nextInstruction,endAddr)
+            nextInstruction = next_head(nextInstruction,endAddr)
         
         # Checking funciton limit
         checkIfLimitCrossed()
 
         print("--Text Section analysis finished, Now exiting--")
+
