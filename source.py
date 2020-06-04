@@ -1,13 +1,19 @@
 from idautils import *
 from idaapi import *
 from idc import *
+
+print("--SCRIPT STARTED--")
+
+# Get list of segments available
+segAddressList = Segments()
+
 # Functions that may be used while malware is trying to run covertly
 covertLaunchingFunctionCalls = ["createprocess","openprocess","writeprocess","virtualallocex","createremotethread",
                              "zwunmapviewofsection","SetWindowsHook","QueueUserAPC"]
 
 # List of antidebug techniques
 antiDebugFunctionCalls = ["IsDebuggerPresent","OutputDebugStringW","CheckRemoteDebuggerPresent","NtQueryInformationProcess",
-                       "ZwQueryInformationProcess","OutputDebugString",]
+                       "ZwQueryInformationProcess","OutputDebugString","QueryPerformanceCounter","GetTickCount","GetTickCount64"]
 
 # List of antiVM techniques
 antiVMFunctionCalls = ["IsProcessorFeaturePresent"]
